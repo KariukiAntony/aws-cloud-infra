@@ -13,10 +13,10 @@ readonly SCRIPT_NAME="terraform-automation"
 # Folders
 readonly BASE_DIR="$PROJECT_ROOT/infra"         # terraform base directory
 readonly MODULES_BASE_DIR="${BASE_DIR}/modules" # the folder to house the modules
-readonly MODULES_DIRS=("vpc" "compute" "security" "webapp" "cloudfront" "cloudwatch" "sns")
+readonly MODULES_DIRS=()
 
 # files
-readonly BASE_DIR_FILES=("main.tf" "outputs.tf" "providers.tf" "terraform.tfvars" "versions.tf" "backend.tf" ".terraformignore" "README.md")
+readonly BASE_DIR_FILES=("main.tf" "variables.tf" "outputs.tf" "providers.tf" "terraform.tfvars" "backend.tf" ".terraformignore" "README.md")
 readonly MODULE_FILES=("main.tf" "variables.tf" "outputs.tf" "versions.tf")
 
 # Colors for output
@@ -135,7 +135,7 @@ helper_format_dir() {
     find "$base_dir" -type f -name "*.tf" -exec terraform fmt {} +
 
     # check if there is any unformated files
-    unformatted_files=$(find "$base_dir" -type f -name "*.tf" -print0 | xargs --null terraform -check -list 2>&1 || true)
+    unformatted_files=$(find "$base_dir" -type f -name "*.tf" -print0 | xargs --null terraform fmt -check -list 2>&1 || true)
     if [[ -n "$unformatted_files" ]]; then
         log_warning "Warning: Some files in '$base_dir' were not formatted correctly by 'terraform fmt'. Please check manually."
         echo "$unformatted_files"
@@ -157,7 +157,7 @@ format_terraform_configs() {
 lint_terraform_config() {
     local format_command="$0 fmt"
     log_info "Checking for linting issues in your configuration"
-    unformatted_files=$(find "$BASE_DIR" -type f -name "*.tf" -print0 | xargs --null terraform -check -list 2>&1 || true)
+    unformatted_files=$(find "$BASE_DIR" -type f -name "*.tf" -print0 | xargs --null terraform fmt -check -list 2>&1 || true)
     if [[ -n "$unformatted_files" ]]; then
         log_warning "Warning: Some files in '$BASE_DIR' are not formated. Run $format_command to format them for consistency"
         echo "$unformatted_files"
