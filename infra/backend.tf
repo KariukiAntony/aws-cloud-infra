@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket       = "aws-cloud-infra-prod-c3cf66f6e6"
+    bucket       = "aws-cloud-infra-prod-56c4631a4e"
     key          = "aws-cloud-infra/prod/terraform.tfstate"
     region       = "eu-central-1"
     encrypt      = true
@@ -91,18 +91,18 @@ resource "aws_iam_policy" "terraform_state_policy" {
         Effect = "Allow"
         Action = [
           "s3:ListBucket",
-          "s3:GetBucketVersioning"
+          "s3:GetBucketLocation"
         ]
-        Resource = aws_s3_bucket.terraform_state.arn
+        Resource = [aws_s3_bucket.terraform_state.arn]
       },
       {
         Effect = "Allow"
         Action = [
           "s3:GetObject",
           "s3:PutObject",
-          "s3:DeleteObject"
+          "s3:DeleteObject",
         ]
-        Resource = "${aws_s3_bucket.terraform_state.arn}/*"
+        Resource = "${aws_s3_bucket.terraform_state.arn}/${local.state_path}/*"
       },
     ]
   })

@@ -1,3 +1,4 @@
+# ---- Root Module
 variable "region" {
   description = "The region to create resources"
   type        = string
@@ -28,4 +29,51 @@ variable "state_version_retention_days" {
   description = "Number of days to retain old state file versions"
   type        = number
   default     = 90
+}
+
+# --- Networking module
+
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr, 0))
+    error_message = "VPC CIDR must be a valid IPv4 CIDR block"
+  }
+}
+
+variable "enable_vpc_dns_support" {
+  description = "Enable vpc dns support"
+  type        = bool
+  default     = true
+}
+
+variable "enable_vpc_dns_hostname" {
+  description = "Enable vpc dns hostnames"
+  type        = bool
+  default     = true
+}
+
+variable "public_subnet_cidrs" {
+  description = "The cidr blocks for the public subnets."
+  type        = list(string)
+}
+
+variable "private_subnet_cidrs" {
+  description = "The cidr blocks for the private subnets."
+  type        = list(string)
+}
+
+variable "enable_nat_gateway" {
+  description = "Should be true to provision a NAT geteway."
+  type        = bool
+  default     = true
+}
+
+
+variable "tags" {
+  description = "A map of tags to assign to resources"
+  type        = map(string)
+  default     = {}
 }
