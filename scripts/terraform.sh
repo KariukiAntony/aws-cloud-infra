@@ -11,9 +11,9 @@ readonly SCRIPT_VERSION="1.0.0"
 readonly SCRIPT_NAME="terraform-automation"
 
 # Folders
-readonly BASE_DIR="$PROJECT_ROOT/infra"         # terraform base directory
-readonly MODULES_BASE_DIR="${BASE_DIR}/modules" # the folder to house the modules
-readonly MODULES_DIRS=()
+readonly BASE_DIR="$PROJECT_ROOT/infra"         # Terraform base directory
+readonly MODULES_BASE_DIR="${BASE_DIR}/modules" # The folder to house the modules
+readonly MODULES_DIRS=("networking")
 
 # files
 readonly BASE_DIR_FILES=("main.tf" "variables.tf" "outputs.tf" "providers.tf" "terraform.tfvars" "backend.tf" ".terraformignore" "README.md")
@@ -111,7 +111,7 @@ validate_terraform_configs() {
 
     # validate base files
     if [[ -d "$BASE_DIR" ]]; then
-        (cd "$BASE_DIR" && terraform init &>/dev/null) || {
+        (cd "$BASE_DIR" && terraform init ) || {
             log_error "Error initializing terraform"
             exit 1
         }
