@@ -71,9 +71,39 @@ variable "enable_nat_gateway" {
   default     = true
 }
 
-
 variable "tags" {
   description = "A map of tags to assign to resources"
   type        = map(string)
   default     = {}
+}
+
+# ---- Security Module ---
+variable "bastion_host_key_path" {
+  description = "Path to public key for public instances"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
+}
+
+variable "bastion_host_allowed_cidr_blocks" {
+  description = "List of CIDR blocks allowed to access public instance"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "allow_bastion_host_http_traffic" {
+  description = "Whether to allow http traffic to bastion host"
+  type        = bool
+  default     = false
+}
+
+variable "allow_bastion_host_https_traffic" {
+  description = "Whether to allow https traffic to bastion host"
+  type        = bool
+  default     = false
+}
+
+variable "private_instance_key_path" {
+  description = "Path to public key for private instances"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
 }

@@ -13,7 +13,7 @@ readonly SCRIPT_NAME="terraform-automation"
 # Folders
 readonly BASE_DIR="$PROJECT_ROOT/infra"         # Terraform base directory
 readonly MODULES_BASE_DIR="${BASE_DIR}/modules" # The folder to house the modules
-readonly MODULES_DIRS=("networking")
+readonly MODULES_DIRS=("networking" "security")
 
 # files
 readonly BASE_DIR_FILES=("main.tf" "variables.tf" "outputs.tf" "providers.tf" "terraform.tfvars" "backend.tf" ".terraformignore" "README.md")
