@@ -5,10 +5,6 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  project_name = lookup(var.tags, "Project", "my-app")
-  environment  = lookup(var.tags, "Environment", "dev")
-  base_name    = "${local.project_name}-${local.environment}"
-
   available_zones = data.aws_availability_zones.available.names
 }
 
@@ -20,7 +16,7 @@ resource "aws_vpc" "main" {
   enable_dns_support   = var.enable_vpc_dns_support
 
   tags = merge(var.tags, {
-    Name = "${local.base_name}-vpc"
+    Name = "${var.base_name}-vpc"
   })
 }
 
@@ -34,7 +30,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = merge(var.tags, {
-    Name = "${local.base_name}-public-${count.index + 1}"
+    Name = "${var.base_name}-public-${count.index + 1}"
     Type = "Public"
   })
 
@@ -55,7 +51,7 @@ resource "aws_subnet" "private" {
   availability_zone = local.available_zones[count.index]
 
   tags = merge(var.tags, {
-    Name = "${local.base_name}-private-${count.index + 1}"
+    Name = "${var.base_name}-private-${count.index + 1}"
     Type = "Private"
   })
 
@@ -71,7 +67,7 @@ resource "aws_subnet" "private" {
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
   tags = merge(var.tags, {
-    Name = "${local.base_name}-igw"
+    Name = "${var.base_name}-igw"
   })
 }
 
@@ -83,7 +79,7 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 
   tags = merge(var.tags, {
-    Name = "${local.base_name}-nat-eip-${count.index + 1}"
+    Name = "${var.base_name}-nat-eip-${count.index + 1}"
   })
 
   depends_on = [aws_internet_gateway.main]
@@ -97,7 +93,7 @@ resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat[count.index].id
 
   tags = merge(var.tags, {
-    Name = "${local.base_name}-nat-${count.index + 1}"
+    Name = "${var.base_name}-nat-${count.index + 1}"
   })
 
   depends_on = [aws_internet_gateway.main]
@@ -112,7 +108,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = merge(var.tags, {
-    Name = "${local.base_name}-public-rt"
+    Name = "${var.base_name}-public-rt"
   })
 }
 
@@ -138,7 +134,7 @@ resource "aws_route_table" "private" {
   }
 
   tags = merge(var.tags, {
-    Name = "${local.base_name}-private-rt-${count.index + 1}"
+    Name = "${var.base_name}-private-rt-${count.index + 1}"
   })
 
 

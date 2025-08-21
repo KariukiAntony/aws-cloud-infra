@@ -25,6 +25,10 @@ variable "enable_nat_gateway" {
   default = true
 }
 
+variable "base_name" {
+  type = string
+}
+
 variable "tags" {
   type = map(string)
 }
