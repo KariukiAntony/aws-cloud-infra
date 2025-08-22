@@ -32,13 +32,24 @@ module "security" {
   source = "./modules/security"
 
   vpc_id                           = module.networking.vpc_id
-  bastion_host_key_path            = var.bastion_host_key_path
+  host_key_path                    = var.host_key_path
   bastion_host_allowed_cidr_blocks = var.bastion_host_allowed_cidr_blocks
   allow_bastion_host_http_traffic  = var.allow_bastion_host_http_traffic
   allow_bastion_host_https_traffic = var.allow_bastion_host_https_traffic
 
+  base_name = local.base_name
+  tags      = local.default_tags
+}
 
-  private_instance_key_path = var.private_instance_key_path
-  base_name                 = local.base_name
-  tags                      = local.default_tags
+module "compute" {
+  source = "./modules/compute"
+
+  bastion_instance_type     = var.bastion_instance_type
+  public_subnet_ids         = module.networking.public_subnets_ids
+  bastion_security_group_id = module.security.bastion_security_group_id
+  key_pair                  = module.security.key_pair
+  bastion_user_data_script  = "${path.root}/../${var.bastion_data_script_path}"
+
+  base_name = local.base_name
+  tags      = local.default_tags
 }
