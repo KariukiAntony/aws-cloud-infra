@@ -5,13 +5,13 @@ data "aws_ec2_managed_prefix_list" "cloudfront" {
 }
 
 # --- Bastion host ----
-# Bastion host key pair
-resource "aws_key_pair" "bastion" {
-  key_name   = "${var.base_name}-bastion-key"
-  public_key = file(var.bastion_host_key_path)
+# Key pair
+resource "aws_key_pair" "key" {
+  key_name   = "${var.base_name}-key-pair"
+  public_key = file(var.host_key_path)
 
   tags = merge(var.tags, {
-    Name = "${var.base_name}-bastion-key"
+    Name = "${var.base_name}-key-pair"
   })
 
 }
@@ -76,15 +76,6 @@ resource "aws_security_group" "bastion" {
 }
 
 # ---- Private instances ---
-# Private instance key pair
-resource "aws_key_pair" "private" {
-  key_name   = "${var.base_name}-private-key"
-  public_key = file(var.private_instance_key_path)
-
-  tags = merge(var.tags, {
-    Name = "${var.base_name}-private-key"
-  })
-}
 
 # Private instance security group
 resource "aws_security_group" "private" {
@@ -112,7 +103,7 @@ resource "aws_security_group" "private" {
     description     = "HTTP from ALB"
     from_port       = 80
     to_port         = 80
-    protocol = "tcp"
+    protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
   }
 
@@ -149,10 +140,10 @@ resource "aws_security_group" "alb" {
   }
 
   egress {
-    description     = "All traffic to target groups"
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
+    description = "All traffic to target groups"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 

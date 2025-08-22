@@ -9,7 +9,7 @@ variable "vpc_id" {
 
 }
 
-variable "bastion_host_key_path" {
+variable "host_key_path" {
   description = "Path to public key for public instances"
   type        = string
 }
@@ -31,10 +31,6 @@ variable "allow_bastion_host_https_traffic" {
   default     = false
 }
 
-variable "private_instance_key_path" {
-  description = "Path to private key for private instances"
-  type        = string
-}
 
 variable "tags" {
   description = "A map of tags to assign to resources"

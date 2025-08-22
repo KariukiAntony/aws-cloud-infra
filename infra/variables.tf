@@ -1,4 +1,4 @@
-# ---- Root Module
+# ---- Root Module ---
 variable "region" {
   description = "The region to create resources"
   type        = string
@@ -31,7 +31,7 @@ variable "state_version_retention_days" {
   default     = 90
 }
 
-# --- Networking module
+# --- Networking module ---
 
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
@@ -78,7 +78,7 @@ variable "tags" {
 }
 
 # ---- Security Module ---
-variable "bastion_host_key_path" {
+variable "host_key_path" {
   description = "Path to public key for public instances"
   type        = string
   default     = "~/.ssh/id_rsa.pub"
@@ -102,8 +102,25 @@ variable "allow_bastion_host_https_traffic" {
   default     = false
 }
 
-variable "private_instance_key_path" {
-  description = "Path to public key for private instances"
+# ---- Compute ----
+variable "bastion_instance_type" {
+  description = "The instance type of the bastion host"
   type        = string
-  default     = "~/.ssh/id_rsa.pub"
+  default     = "t2.micro"
+}
+
+variable "bastion_data_script_path" {
+  description = "Bastion data script path in relative to root dir"
+}
+
+variable "bastion_connection_key_path" {
+  description = "Bastion SSH private key path"
+  type        = string
+  default     = "~/.ssh/id_rsa"
+}
+
+variable "private_connection_key_path" {
+  description = "Private instance SSH private key path"
+  type        = string
+  default     = "~/.ssh/id_rsa"
 }
