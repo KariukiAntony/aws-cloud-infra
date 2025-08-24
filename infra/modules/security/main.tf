@@ -4,7 +4,23 @@ data "aws_ec2_managed_prefix_list" "cloudfront" {
   name = "com.amazonaws.global.cloudfront.origin-facing"
 }
 
-# --- Bastion host ----
+# Assume role trust policy for ec2 instances
+data "aws_iam_policy_document" "ec2_assume_role_policy" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+# AWS Managed policy for EC2-CloudWatch integrations
+data "aws_iam_policy" "ec2_cloudwatch" {
+  name = "CloudWatchAgentServerPolicy"
+}
+
 # Key pair
 resource "aws_key_pair" "key" {
   key_name   = "${var.base_name}-key-pair"
@@ -154,4 +170,20 @@ resource "aws_security_group" "alb" {
   tags = merge(var.tags, {
     Name = "${var.base_name}-alb-sg"
   })
+}
+
+# ---- Roles and policies -----
+# Role to enable cloudwatch agents to publish custom metrics to CloudWatch
+resource "aws_iam_role" "ec2_cloudwatch" {
+  name               = "${var.base_name}-EC2CloudWatch"
+  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role_policy.json
+  tags = merge(var.tags, {
+    Name = "${var.base_name}-EC2CloudWatch"
+  })
+}
+
+# Attach policy to the above role
+resource "aws_iam_role_policy_attachment" "ec2_cloudwatch" {
+  role       = aws_iam_role.ec2_cloudwatch.name
+  policy_arn = data.aws_iam_policy.ec2_cloudwatch.arn
 }

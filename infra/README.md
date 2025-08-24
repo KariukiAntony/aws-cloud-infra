@@ -2,6 +2,8 @@
 ## Architecture
 ## Modules
 1. ### Networking Module Components
+<img src="../docs/networking.svg" alt="Terraform-aws-architecture"/>
+
    1. **VPC**
       - This resource enables us to create an isolated virtual network within AWS. It gives us full control of networking in the cloud.
    2. **Subnets**

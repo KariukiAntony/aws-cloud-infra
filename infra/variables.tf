@@ -103,6 +103,31 @@ variable "allow_bastion_host_https_traffic" {
 }
 
 # ---- Compute ----
+
+variable "instance_type" {
+  description = "Instance type for your application servers"
+  type        = string
+}
+
+variable "enable_alb_deletion_protection" {
+  description = "Disable the deletion of load balancer via AWS API"
+  type        = bool
+  default     = false
+}
+
+variable "enable_monitoring" {
+  description = "Enable EC2 detailed monitoring"
+  type        = bool
+  default     = true
+}
+
+variable "template_data_script" {
+  description = "Launch template data script path in relative to root dir"
+  type        = string
+}
+
+
+# ---- Bastion ----
 variable "bastion_instance_type" {
   description = "The instance type of the bastion host"
   type        = string
