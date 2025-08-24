@@ -18,12 +18,14 @@ output "iam_policy_arn" {
 
 # --- Security module ---
 
-# --- Compute module ---
+# --- Bastion module ---
 output "bastion_commands" {
   description = "Commands to connect to bastion host"
   value = {
-    public_ip   = module.compute.bastion_public_ip
-    public_dns  = module.compute.bastion_public_dns
-    ssh_command = "ssh ubuntu@${module.compute.bastion_public_ip}"
+    public_ip   = module.bastion.bastion_public_ip
+    public_dns  = module.bastion.bastion_public_dns
+    ssh_command = "ssh ubuntu@${module.bastion.bastion_public_ip}"
   }
 }
+
+# --- Compute module ---

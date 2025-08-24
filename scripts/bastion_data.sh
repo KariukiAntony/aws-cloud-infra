@@ -6,7 +6,7 @@ sudo hostnamectl set-hostname "${hostname}"
 echo "127.0.1.1 ${hostname}" | sudo tee -a /etc/hosts
 
 sudo apt install -y nginx unzip
-sudp systemctl enable nginx
+sudo systemctl enable nginx
 
 # Get the instance ID
 export TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
