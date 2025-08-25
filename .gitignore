@@ -34,3 +34,4 @@ override.tf.json
 
 # General
 learn.md
+*.txt
