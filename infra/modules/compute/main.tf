@@ -65,7 +65,7 @@ resource "aws_iam_instance_profile" "main_profile" {
 }
 
 
-# The lauch template.
+# The launch template.
 resource "aws_launch_template" "main" {
   name_prefix            = "${var.base_name}-"
   image_id               = var.ami_id
@@ -77,11 +77,6 @@ resource "aws_launch_template" "main" {
 
   iam_instance_profile {
     name = aws_iam_instance_profile.main_profile.name
-  }
-
-  network_interfaces {
-    associate_public_ip_address = false # Since they will be deployed in a private subnets.
-    security_groups             = [var.security_group_id]
   }
 
   monitoring {
@@ -101,4 +96,61 @@ resource "aws_launch_template" "main" {
     })
   }
   tags = var.tags
+}
+
+# AutoScaling group
+resource "aws_autoscaling_group" "main" {
+  name                = "${var.base_name}-asg"
+  vpc_zone_identifier = var.private_subnet_ids
+  min_size            = var.min_size
+  max_size            = var.max_size
+  desired_capacity    = var.desired_capacity
+  target_group_arns   = [aws_lb_target_group.main.arn]
+
+  health_check_type         = "ELB"
+  health_check_grace_period = 300
+
+  launch_template {
+    id      = aws_launch_template.main.id
+    version = "$Latest"
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "${var.base_name}-asg"
+    propagate_at_launch = false
+  }
+
+  dynamic "tag" {
+    for_each = var.tags
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
+    iterator = tag
+  }
+
+  instance_refresh {
+    strategy = "Rolling"
+  }
+}
+
+# Scaling policies.
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "${var.base_name}-scale-up"
+  adjustment_type        = "ChangeInCapacity"
+  scaling_adjustment     = var.scaling_adjustment
+  policy_type            = "SimpleScaling" # The default.
+  cooldown               = 300             # Amount of time, in seconds, after a scaling activity completes and before the next scaling activity can start.
+  autoscaling_group_name = aws_autoscaling_group.main.name
+}
+
+resource "aws_autoscaling_policy" "scale_down" {
+  name                   = "${var.base_name}-scale-down"
+  adjustment_type        = "ChangeInCapacity"
+  scaling_adjustment     = tonumber("-${var.scaling_adjustment}")
+  policy_type            = "SimpleScaling"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.main.name
 }

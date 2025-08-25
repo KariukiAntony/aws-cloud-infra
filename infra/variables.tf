@@ -126,6 +126,26 @@ variable "template_data_script" {
   type        = string
 }
 
+variable "min_size" {
+  description = "Minimum number of instances in ASG"
+  type        = number
+}
+
+variable "max_size" {
+  description = "Maximum number of instances in ASG"
+  type        = number
+}
+
+variable "desired_capacity" {
+  description = "Desired number of instances in ASG"
+  type        = number
+}
+
+variable "scaling_adjustment" {
+  description = "Number of instances by which to scale"
+  type        = number
+}
+
 
 # ---- Bastion ----
 variable "bastion_instance_type" {
@@ -148,4 +168,10 @@ variable "private_connection_key_path" {
   description = "Private instance SSH private key path"
   type        = string
   default     = "~/.ssh/id_rsa"
+}
+
+# ---- dns-ssl ----
+variable "domain_name" {
+  description = "The domain name of your application"
+  type        = string
 }

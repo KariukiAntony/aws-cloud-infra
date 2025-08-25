@@ -2,6 +2,7 @@ provider "aws" {
   region = var.region
 }
 
+
 locals {
   state_path = "${var.project_name}/${var.environment}"
   default_tags = {
@@ -83,18 +84,32 @@ module "compute" {
   ami_id            = data.aws_ami.latest_ubuntu.id
   vpc_id            = module.networking.vpc_id
   public_subnet_ids = module.networking.public_subnets_ids
+  private_subnet_ids = module.networking.private_subnets_ids
 
   alb_security_group_id = module.security.alb_security_group_id
   ec2_cloudwatch_role   = module.security.ec2_cloudwatch_role
 
   enable_alb_deletion_protection = false
-  ssl_certificate_arn            = "arn:aws:acm:eu-central-1:618480996469:certificate/595fe24f-d30f-442c-9552-69de72ea6a14"
+  ssl_certificate_arn            = module.dns-ssl.alb_certificate_arn
 
   instance_type        = var.instance_type
   key_name             = module.security.key_pair
   security_group_id    = module.security.private_security_group_id
   enable_monitoring    = var.enable_monitoring
   template_data_script = "${path.root}/../${var.template_data_script}"
+
+  min_size = var.min_size
+  max_size = var.max_size
+  desired_capacity = var.desired_capacity
+  scaling_adjustment = var.scaling_adjustment
+
+  base_name = local.base_name
+  tags      = local.default_tags
+}
+
+module "dns-ssl" {
+  source      = "./modules/dns-ssl"
+  domain_name = var.domain_name
 
   base_name = local.base_name
   tags      = local.default_tags
