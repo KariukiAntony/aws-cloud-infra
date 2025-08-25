@@ -23,11 +23,6 @@ variable "security_group_id" {
   type        = string
 }
 
-variable "base_name" {
-  description = "The basename for all resources"
-  type        = string
-}
-
 variable "alb_security_group_id" {
   description = "ALB security group ID"
   type        = string
@@ -60,6 +55,37 @@ variable "enable_monitoring" {
 
 variable "template_data_script" {
   description = "Path to template data script"
+  type        = string
+}
+
+# asg
+variable "private_subnet_ids" {
+  description = "List of private subnet IDs"
+  type        = list(string)
+}
+
+variable "min_size" {
+  description = "Minimum number of instances in ASG"
+  type        = number
+}
+
+variable "max_size" {
+  description = "Maximum number of instances in ASG"
+  type        = number
+}
+
+variable "desired_capacity" {
+  description = "Desired number of instances in ASG"
+  type        = number
+}
+
+variable "scaling_adjustment" {
+  description = "Number of instances by which to scale"
+  type        = number
+}
+
+variable "base_name" {
+  description = "The basename for all resources"
   type        = string
 }
 

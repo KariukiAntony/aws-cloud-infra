@@ -1,7 +1,7 @@
 
-## Architecture
+# Architecture
 ## Modules
-1. ### Networking Module Components
+## Networking Module Components
 <img src="../docs/networking.svg" alt="Terraform-aws-architecture"/>
 
    1. **VPC**
@@ -25,3 +25,7 @@
           - route traffic to NAT gateway for internet access.
    7. **Routes**
       - These are individual routing rules within route tables that specify destination CIDR blocks and target gateways or instances.
+
+
+### DNS-SSL Module Components
+<img src="../docs/dns_ssl.svg" alt="Terraform-aws-architecture"/>
