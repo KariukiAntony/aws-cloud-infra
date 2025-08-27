@@ -29,3 +29,6 @@
 
 ### DNS-SSL Module Components
 <img src="../docs/dns_ssl.svg" alt="Terraform-aws-architecture"/>
+
+### Security Module Components
+<img src="../docs/security.svg" alt="Terraform-aws-architecture"/>

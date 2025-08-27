@@ -48,6 +48,11 @@ variable "ec2_cloudwatch_role" {
   type        = string
 }
 
+variable "ec2_cloudwatch_log_group" {
+  description = "The log group for ec2 instances"
+  type        = string
+}
+
 variable "enable_monitoring" {
   description = "Enable detailed monitoring"
   type        = bool

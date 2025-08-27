@@ -81,9 +81,9 @@ module "bastion" {
 module "compute" {
   source = "./modules/compute"
 
-  ami_id            = data.aws_ami.latest_ubuntu.id
-  vpc_id            = module.networking.vpc_id
-  public_subnet_ids = module.networking.public_subnets_ids
+  ami_id             = data.aws_ami.latest_ubuntu.id
+  vpc_id             = module.networking.vpc_id
+  public_subnet_ids  = module.networking.public_subnets_ids
   private_subnet_ids = module.networking.private_subnets_ids
 
   alb_security_group_id = module.security.alb_security_group_id
@@ -92,15 +92,16 @@ module "compute" {
   enable_alb_deletion_protection = false
   ssl_certificate_arn            = module.dns-ssl.alb_certificate_arn
 
-  instance_type        = var.instance_type
-  key_name             = module.security.key_pair
-  security_group_id    = module.security.private_security_group_id
-  enable_monitoring    = var.enable_monitoring
-  template_data_script = "${path.root}/../${var.template_data_script}"
+  instance_type            = var.instance_type
+  key_name                 = module.security.key_pair
+  security_group_id        = module.security.private_security_group_id
+  enable_monitoring        = var.enable_monitoring
+  template_data_script     = "${path.root}/../${var.template_data_script}"
+  ec2_cloudwatch_log_group = var.ec2_cloudwatch_log_group
 
-  min_size = var.min_size
-  max_size = var.max_size
-  desired_capacity = var.desired_capacity
+  min_size           = var.min_size
+  max_size           = var.max_size
+  desired_capacity   = var.desired_capacity
   scaling_adjustment = var.scaling_adjustment
 
   base_name = local.base_name
@@ -113,4 +114,52 @@ module "dns-ssl" {
 
   base_name = local.base_name
   tags      = local.default_tags
+}
+
+module "cdn" {
+  source = "./modules/cdn"
+
+  origin_domain_name  = module.compute.alb_dns_hostname
+  aliases             = var.aliases
+  acm_certificate_arn = module.dns-ssl.cloudfront_certificate_arn
+
+  base_name = local.base_name
+  tags      = local.default_tags
+}
+
+# Type A DNS records to CloudFront
+resource "aws_route53_record" "root_domain" {
+  name    = var.domain_name
+  zone_id = module.dns-ssl.zone_id
+  type    = "A"
+  alias {
+    name                   = module.cdn.cloudfront_domain_name
+    zone_id                = module.cdn.cloudfront_hosted_zone_id
+    evaluate_target_health = true
+  }
+}
+
+# WWW subdomain pointing to CloudFront.
+resource "aws_route53_record" "www" {
+  name    = "www.${var.domain_name}"
+  zone_id = module.dns-ssl.zone_id
+  type    = "A"
+
+  alias {
+    name                   = module.cdn.cloudfront_domain_name
+    zone_id                = module.cdn.cloudfront_hosted_zone_id
+    evaluate_target_health = true
+  }
+}
+
+# Type A DNS records the ALB
+resource "aws_route53_record" "api_domain" {
+  name    = "api.${var.domain_name}"
+  zone_id = module.dns-ssl.zone_id
+  type    = "A"
+  alias {
+    name                   = module.compute.alb_dns_hostname
+    zone_id                = module.compute.alb_zoneid
+    evaluate_target_health = true
+  }
 }
