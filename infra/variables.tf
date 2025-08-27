@@ -175,3 +175,16 @@ variable "domain_name" {
   description = "The domain name of your application"
   type        = string
 }
+
+# ---- Monitoring ----
+variable "ec2_cloudwatch_log_group" {
+  description = "The log group for ec2 instances"
+  type        = string
+}
+
+# ---- CDN -----
+variable "aliases" {
+  description = "List of domain aliases for the CloudFront distribution"
+  type        = list(string)
+  default     = []
+}

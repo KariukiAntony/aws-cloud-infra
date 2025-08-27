@@ -37,7 +37,6 @@ resource "aws_lb_target_group" "main" {
 }
 
 
-
 # ALB Listener(HTTPS)
 resource "aws_lb_listener" "main_https" {
   count = var.ssl_certificate_arn != "" ? 1 : 0
@@ -84,9 +83,9 @@ resource "aws_launch_template" "main" {
   }
 
   user_data = base64encode(templatefile(var.template_data_script, {
-    app_name       = "var.app_name"
-    environment    = "var.environment"
-    log_group_name = "CloudWatchLogGroup."
+    base_name      = var.base_name
+    hostname       = "${var.base_name}-appserver"
+    log_group_name = var.ec2_cloudwatch_log_group
   }))
 
   tag_specifications {

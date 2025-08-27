@@ -14,12 +14,12 @@ output "alb_zoneid" {
   value       = aws_lb.main.zone_id
 }
 
-output "scale_up_policy_arn" {
-  description = "ARN of the scale up policy"
-  value       = aws_autoscaling_policy.scale_up.arn
-}
+# output "scale_up_policy_arn" {
+#   description = "ARN of the scale up policy"
+#   value       = aws_autoscaling_policy.scale_up.arn
+# }
 
-output "scale_down_policy_arn" {
-  description = "ARN of the scale down policy"
-  value       = aws_autoscaling_policy.scale_down.arn
-}
+# output "scale_down_policy_arn" {
+#   description = "ARN of the scale down policy"
+#   value       = aws_autoscaling_policy.scale_down.arn
+# }

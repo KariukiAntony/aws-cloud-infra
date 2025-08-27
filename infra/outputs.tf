@@ -29,3 +29,9 @@ output "bastion_commands" {
 }
 
 # --- Compute module ---
+output "alb_dns_hostname" {
+  description = "DNS hostname for the ALB"
+  value       = module.compute.alb_dns_hostname
+}
+
+# --- dns-ssl module ---
