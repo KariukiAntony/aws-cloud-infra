@@ -127,6 +127,20 @@ module "cdn" {
   tags      = local.default_tags
 }
 
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  notification_email     = "antonygichoya9@gmail.com"
+  scale_up_policy_arn    = module.compute.scale_up_policy_arn
+  scale_down_policy_arn  = module.compute.scale_down_policy_arn
+  autoscaling_group_name = module.compute.autoscaling_group_name
+
+  instance_type = var.instance_type
+
+  base_name = local.base_name
+  tags      = local.default_tags
+}
+
 # Type A DNS records to CloudFront
 resource "aws_route53_record" "root_domain" {
   name    = var.domain_name
