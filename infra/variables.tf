@@ -182,9 +182,150 @@ variable "ec2_cloudwatch_log_group" {
   type        = string
 }
 
+variable "high_cpu_threshold" {
+  description = "The maximum threshold to trigger auto scaling"
+  type        = number
+}
+
+variable "high_memory_threshold" {
+  description = "The maximum memory threshold to trigger auto scaling"
+  type        = number
+}
+
+variable "notification_email" {
+  description = "Email to receive notifications"
+  type        = string
+}
+
 # ---- CDN -----
-variable "aliases" {
-  description = "List of domain aliases for the CloudFront distribution"
+
+variable "enabled" {
+  description = "Whether the distribution is enabled to accept end user requests for content."
+  type        = bool
+  default     = true
+}
+
+variable "is_ipv6_enabled" {
+  description = "Whether IPv6 is enabled for the distribution"
+  type        = bool
+  default     = true
+}
+
+variable "default_root_object" {
+  description = "Object CloudFront will return on the root url."
+  type        = string
+  default     = "/index.html"
+}
+
+variable "custom_error_page_path" {
+  description = "Custom error response page."
+  type        = string
+  default     = "/error.html"
+}
+
+variable "comment" {
+  description = "Comment for the distribution"
+  type        = string
+  default     = ""
+}
+
+variable "price_class" {
+  description = "Price class for the distribution (PriceClass_All, PriceClass_200, PriceClass_100)"
+  type        = string
+  default     = "PriceClass_All"
+}
+
+variable "web_acl_id" {
+  description = "AWS WAF web ACL ID to associate with the distribution"
+  type        = string
+  default     = ""
+}
+
+
+variable "s3_bucket_prefix" {
+  description = "Prefix for S3 CloudFront logs"
+  type        = string
+}
+
+variable "allowed_methods" {
+  description = "HTTP methods that CloudFront processes and forwards"
   type        = list(string)
-  default     = []
+  default     = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+}
+
+variable "cached_methods" {
+  description = "HTTP methods for which CloudFront caches responses"
+  type        = list(string)
+  default     = ["GET", "HEAD"]
+}
+
+variable "viewer_protocol_policy" {
+  description = "Viewer protocol policy (allow-all, redirect-to-https, https-only)"
+  type        = string
+  default     = "redirect-to-https"
+}
+
+variable "compress" {
+  description = "Whether to compress content automatically"
+  type        = bool
+  default     = true
+}
+
+variable "ssl_support_method" {
+  description = "SSL support method (sni-only or vip)"
+  type        = string
+  default     = "sni-only"
+}
+
+variable "minimum_protocol_version" {
+  description = "Minimum SSL protocol version"
+  type        = string
+  default     = "TLSv1.2_2021"
+}
+
+variable "wait_for_deployment" {
+  description = "Wait for the distribution status to change from InProgress to Deployed"
+  default     = false
+}
+
+variable "default_ttl" {
+  description = "Default TTL for cached objects (seconds)"
+  type        = number
+  default     = 3600
+}
+
+variable "max_ttl" {
+  description = "Maximum TTL for cached objects (seconds)"
+  type        = number
+  default     = 86400
+}
+
+variable "min_ttl" {
+  description = "Minimum TTL for cached objects (seconds)"
+  type        = number
+  default     = 0
+}
+
+
+variable "origin_protocol_policy" {
+  description = "Origin protocol policy (http-only, https-only, match-viewer)"
+  type        = string
+  default     = "https-only"
+}
+
+# ---- Storage -----
+variable "enable_frontend_bucket_versioning" {
+  description = "Whether to setup versioning in the fronted bucket"
+  type        = bool
+  default     = false
+}
+
+variable "noncurrent_version_expiration_days" {
+  description = "Days to keep non-current versions"
+  type        = number
+  default     = 30
+  validation {
+    condition     = var.noncurrent_version_expiration_days > 0
+    error_message = "Expiration days must be greater than 0."
+  }
 }

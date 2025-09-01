@@ -9,7 +9,7 @@ SCRIPT_PATH="/usr/local/bin/health-check.sh"
 
 # Update and upgrade the package index
 sudo apt update && sudo apt dist-upgrade -y
-sudo apt install -y nginx unzip
+sudo apt install -y nginx unzip stress-ng
 sudo apt enable nginx
 
 sudo hostnamectl set-hostname "${hostname}"
@@ -232,3 +232,11 @@ echo "*/5 * * * * $SCRIPT_PATH" | crontab -
 "$SCRIPT_PATH"
 
 # Pull the latest tag of the backend application.
+
+# ---Test ASG ---
+# # Memory stress - 90% memory usage
+# stress-ng --vm 4 --vm-bytes 90% --timeout 300s --metrics-brief
+# # CPU stress test (4 workers for 5 minutes)
+# stress-ng --cpu 4 --timeout 300s --metrics-brief
+# # Combined CPU + Memory stress
+# stress-ng --cpu 2 --vm 2 --vm-bytes 85% --timeout 300s --metrics-brief

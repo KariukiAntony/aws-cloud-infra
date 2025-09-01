@@ -1,10 +1,16 @@
+
+provider "aws" {
+  region = "us-east-1"
+  alias  = "us_east_1"
+}
+
 resource "random_id" "bucket_suffix" {
   byte_length = 6
 }
 
 # A bucket to store cloudfront logs
 resource "aws_s3_bucket" "cloudfront_logs" {
-  bucket = "${var.base_name}-${random_id.bucket_suffix.hex}"
+  bucket = "${var.base_name}-cloudfront-${random_id.bucket_suffix.hex}"
 }
 
 resource "aws_s3_bucket_ownership_controls" "main" {
@@ -21,26 +27,33 @@ resource "aws_s3_bucket_acl" "example" {
   acl    = "private"
 }
 
+# Cloudfront Origin Access control for frontend bucket
+resource "aws_cloudfront_origin_access_control" "main" {
+  provider                          = aws.us_east_1
+  name                              = "${var.base_name}-oac"
+  description                       = "Origin Access control for CloudFront to access S3 bucket"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 # CloudFront distribution
 resource "aws_cloudfront_distribution" "main" {
-  enabled         = var.enabled
-  is_ipv6_enabled = var.is_ipv6_enabled
-  comment         = var.comment != "" ? var.comment : "CloudFront distribution for ${var.base_name}"
-  price_class     = var.price_class
-  web_acl_id      = var.web_acl_id
-  aliases         = var.aliases
+  provider            = aws.us_east_1
+  enabled             = var.enabled
+  is_ipv6_enabled     = var.is_ipv6_enabled
+  default_root_object = var.default_root_object
+  comment             = var.comment != "" ? var.comment : "CloudFront distribution for ${var.base_name}"
+  price_class         = var.price_class
+  web_acl_id          = var.web_acl_id
+  aliases             = var.aliases
 
   # S3 Origin for frontend
   origin {
-    domain_name = var.origin_domain_name
-    origin_id   = "${var.base_name}-origin"
+    domain_name              = var.s3_regional_domain_name
+    origin_id                = "${var.base_name}-s3-origin"
+    origin_access_control_id = aws_cloudfront_origin_access_control.main.id
 
-    custom_origin_config {
-      http_port              = var.origin_http_port
-      https_port             = var.origin_https_port
-      origin_protocol_policy = var.origin_protocol_policy
-      origin_ssl_protocols   = var.origin_ssl_protocols
-    }
   }
 
   default_cache_behavior {
@@ -48,27 +61,32 @@ resource "aws_cloudfront_distribution" "main" {
     cached_methods         = var.cached_methods
     viewer_protocol_policy = var.viewer_protocol_policy
     compress               = var.compress
-    target_origin_id       = "${var.base_name}-origin"
+    target_origin_id       = "${var.base_name}-s3-origin"
 
     # Configure cache settings
+    min_ttl     = var.min_ttl
     default_ttl = var.default_ttl
     max_ttl     = var.max_ttl
-    min_ttl     = var.min_ttl
 
     forwarded_values {
       query_string = false
-      headers = [
-        "Origin",
-        "Host",
-        "CloudFront-Viewer-Country",
-        "CloudFront-Is-Mobile-Viewer",
-        "CloudFront-Is-Tablet-Viewer",
-        "CloudFront-Is-Desktop-Viewer"
-      ]
       cookies {
         forward = "none"
       }
     }
+  }
+
+  # Custom error responses for SPA routing
+  custom_error_response {
+    error_code         = 403
+    response_code      = 200
+    response_page_path = var.custom_error_page_path
+  }
+
+  custom_error_response {
+    error_code         = 404
+    response_code      = 200
+    response_page_path = var.custom_error_page_path
   }
 
   viewer_certificate {

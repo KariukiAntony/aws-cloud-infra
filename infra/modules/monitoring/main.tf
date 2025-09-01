@@ -34,7 +34,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   metric_name               = "CPUUtilization"
   statistic                 = "Average"
   period                    = 120 # Two minutes
-  threshold                 = 50
+  threshold                 = var.high_cpu_threshold
   comparison_operator       = "GreaterThanThreshold"
   alarm_actions             = [aws_sns_topic.main.arn, var.scale_up_policy_arn]
   insufficient_data_actions = []
@@ -55,7 +55,7 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu" {
   period              = 120
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  threshold           = 30
+  threshold           = 10
   statistic           = "Average"
   dimensions = {
     AutoScalingGroupName = var.autoscaling_group_name
@@ -75,7 +75,7 @@ resource "aws_cloudwatch_metric_alarm" "high_memory" {
   metric_name               = "mem_used_percent"
   statistic                 = "Average"
   period                    = 120
-  threshold                 = 50
+  threshold                 = var.high_memory_threshold
   comparison_operator       = "GreaterThanThreshold"
   alarm_actions             = [aws_sns_topic.main.arn, var.scale_up_policy_arn]
   insufficient_data_actions = []
@@ -104,7 +104,7 @@ resource "aws_cloudwatch_metric_alarm" "disk_usage" {
   ok_actions                = [aws_sns_topic.main.arn]
   dimensions = {
     AutoScalingGroupName = var.autoscaling_group_name
-    device               = "/dev/xvda1"
+    device               = local.root_device
     fstype               = "ext4"
     path                 = "/"
   }
