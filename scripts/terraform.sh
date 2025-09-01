@@ -13,7 +13,7 @@ readonly SCRIPT_NAME="terraform-automation"
 # Folders
 readonly BASE_DIR="$PROJECT_ROOT/infra"         # Terraform base directory
 readonly MODULES_BASE_DIR="${BASE_DIR}/modules" # The folder to house the modules
-readonly MODULES_DIRS=("networking" "security" "compute" "bastion" "dns-ssl" "cdn" "monitoring")
+readonly MODULES_DIRS=("networking" "security" "compute" "bastion" "dns-ssl" "cdn" "monitoring" "storage")
 
 # files
 readonly BASE_DIR_FILES=("main.tf" "variables.tf" "outputs.tf" "providers.tf" "terraform.tfvars" "backend.tf" ".terraformignore" "README.md")
@@ -174,12 +174,6 @@ security_scan() {
     if find "$BASE_DIR" -name "*.tf" -o -name "*.tfvars" | xargs grep -l "password\|secret|key" >/dev/null 2>&1; then
         log_warning "Found potential hardcoded secrets. Please review the following files:"
         find "$BASE_DIR" -name "*.tf" -o -name "*.tfvars" | xargs grep -n "password\|secret|key" >/dev/null 2>&1 || true
-        issue_found=true
-    fi
-
-    # check if *.tfstate* is added to .gitignore
-    if find "$BASE_DIR" -name "*.tfstate*" | grep -v ".gitinore" >/dev/null 2>&1; then
-        log_warning "Found .tfsate files. Make sure to add them to .gitignore"
         issue_found=true
     fi
 

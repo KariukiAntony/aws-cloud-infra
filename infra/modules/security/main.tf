@@ -156,15 +156,6 @@ resource "aws_security_group" "alb" {
     # prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
   }
 
-  ingress {
-    description = "HTTPS only from CloudFront IP ranges"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    # prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-  }
-
   egress {
     description = "All traffic to target groups"
     from_port   = 0
@@ -196,4 +187,23 @@ resource "aws_iam_role" "ec2_cloudwatch" {
 resource "aws_iam_role_policy_attachment" "ec2_cloudwatch" {
   role       = aws_iam_role.ec2_cloudwatch.name
   policy_arn = data.aws_iam_policy.ec2_cloudwatch.arn
+}
+
+# Fronted S3 bucket policy for CloudFront to get objects
+resource "aws_s3_bucket_policy" "frontend" {
+  bucket = var.frontend_bucket_id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudFrontServicePrincipal"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = "S3:GetObject"
+        Resource = [var.frontend_bucket_arn, "${var.frontend_bucket_arn}/*"]
+      }
+    ]
+  })
 }

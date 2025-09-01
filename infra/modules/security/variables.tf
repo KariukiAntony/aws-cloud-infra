@@ -37,3 +37,14 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# --- Frontend s3 bucket ---
+variable "frontend_bucket_id" {
+  description = "ID of the bucket to host the frontend"
+  type        = string
+}
+
+variable "frontend_bucket_arn" {
+  description = "ARN of the bucket to host the frontend"
+  type        = string
+}

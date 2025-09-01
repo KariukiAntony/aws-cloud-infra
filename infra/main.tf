@@ -37,6 +37,16 @@ data "aws_ami" "latest_ubuntu" {
 }
 
 # ---- Modules ----
+module "storage" {
+  source = "./modules/storage"
+
+  enable_bucket_versioning           = var.enable_frontend_bucket_versioning
+  noncurrent_version_expiration_days = var.noncurrent_version_expiration_days
+
+  base_name = local.base_name
+  tags      = local.default_tags
+}
+
 module "networking" {
   source = "./modules/networking"
 
@@ -60,6 +70,9 @@ module "security" {
   bastion_host_allowed_cidr_blocks = var.bastion_host_allowed_cidr_blocks
   allow_bastion_host_http_traffic  = var.allow_bastion_host_http_traffic
   allow_bastion_host_https_traffic = var.allow_bastion_host_https_traffic
+
+  frontend_bucket_id  = module.storage.bucket_id
+  frontend_bucket_arn = module.storage.bucket_arn
 
   base_name = local.base_name
   tags      = local.default_tags
@@ -119,9 +132,31 @@ module "dns-ssl" {
 module "cdn" {
   source = "./modules/cdn"
 
-  origin_domain_name  = module.compute.alb_dns_hostname
-  aliases             = var.aliases
-  acm_certificate_arn = module.dns-ssl.cloudfront_certificate_arn
+  enabled         = var.enabled
+  is_ipv6_enabled = var.is_ipv6_enabled
+  comment         = var.comment
+  price_class     = var.price_class
+
+  default_root_object     = var.default_root_object
+  custom_error_page_path  = var.custom_error_page_path
+  s3_regional_domain_name = module.storage.bucket_regional_domain
+  allowed_methods         = var.allowed_methods
+  cached_methods          = var.cached_methods
+  web_acl_id              = var.web_acl_id
+  compress                = var.compress
+  min_ttl                 = var.min_ttl
+  default_ttl             = var.default_ttl
+  max_ttl                 = var.max_ttl
+
+  ssl_support_method     = var.ssl_support_method
+  origin_protocol_policy = var.origin_protocol_policy
+  s3_bucket_prefix       = var.s3_bucket_prefix
+  wait_for_deployment    = var.wait_for_deployment
+
+  viewer_protocol_policy   = var.viewer_protocol_policy
+  minimum_protocol_version = var.minimum_protocol_version
+  aliases                  = [var.domain_name, "www.${var.domain_name}"]
+  acm_certificate_arn      = module.dns-ssl.cloudfront_certificate_arn
 
   base_name = local.base_name
   tags      = local.default_tags
@@ -130,7 +165,9 @@ module "cdn" {
 module "monitoring" {
   source = "./modules/monitoring"
 
-  notification_email     = "antonygichoya9@gmail.com"
+  high_cpu_threshold     = var.high_cpu_threshold
+  high_memory_threshold  = var.high_memory_threshold
+  notification_email     = var.notification_email
   scale_up_policy_arn    = module.compute.scale_up_policy_arn
   scale_down_policy_arn  = module.compute.scale_down_policy_arn
   autoscaling_group_name = module.compute.autoscaling_group_name

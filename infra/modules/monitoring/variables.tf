@@ -36,3 +36,13 @@ variable "instance_type" {
     error_message = "Instance type must be a valid EC2 instance type format (e.g., t3.micro, m5.large)."
   }
 }
+
+variable "high_cpu_threshold" {
+  description = "The maximum cpu threshold to trigger auto scaling"
+  type        = number
+}
+
+variable "high_memory_threshold" {
+  description = "The maximum memory threshold to trigger auto scaling"
+  type        = number
+}

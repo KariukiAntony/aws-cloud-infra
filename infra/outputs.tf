@@ -19,19 +19,19 @@ output "iam_policy_arn" {
 # --- Security module ---
 
 # --- Bastion module ---
-output "bastion_commands" {
-  description = "Commands to connect to bastion host"
-  value = {
-    public_ip   = module.bastion.bastion_public_ip
-    public_dns  = module.bastion.bastion_public_dns
-    ssh_command = "ssh ubuntu@${module.bastion.bastion_public_ip}"
-  }
-}
+# output "bastion_commands" {
+#   description = "Commands to connect to bastion host"
+#   value = {
+#     public_ip   = module.bastion.bastion_public_ip
+#     public_dns  = module.bastion.bastion_public_dns
+#     ssh_command = "ssh ubuntu@${module.bastion.bastion_public_ip}"
+#   }
+# }
 
-# --- Compute module ---
-output "alb_dns_hostname" {
-  description = "DNS hostname for the ALB"
-  value       = module.compute.alb_dns_hostname
-}
+# # --- Compute module ---
+# output "alb_dns_hostname" {
+#   description = "DNS hostname for the ALB"
+#   value       = module.compute.alb_dns_hostname
+# }
 
 # --- dns-ssl module ---
