@@ -1,0 +1,81 @@
+name: Terraform CI/CD
+run-name: infra ci/cd
+
+on:
+  push:
+    branches: [main, infra]
+
+  pull_request:
+    branches: [main, infra]
+
+  workflow_dispatch:
+    inputs:
+      apply:
+        type: boolean
+        description: "Do you want to apply the changes?"
+        default: false
+
+permissions:
+  contents: read
+  id-token: write # Required for requesting the singed jwt token.
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ci:
+    name: Terraform CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the infra code
+        uses: actions/checkout@v4
+        with:
+          ref: infra
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.11.0"
+
+      - name: Lint the code
+        run: ./scripts/terraform.sh lint
+
+      - name: Validate
+        run: ./scripts/terraform.sh validate
+
+      - name: Security scan
+        run: ./scripts/terraform.sh scan
+
+  cd:
+    name: Terraform CD
+    needs: ci
+    if: github.ref == 'refs/head/main' && github.event == 'push'
+    runs-on: ubuntu-latest
+
+    environment: ${{ github.ref == 'refs/head/main' && 'production' || 'staging' }}
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+        with:
+            path: infra
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-region: "${{ vars.REGION }}"
+          role-to-assume: "${{ vars.ACTIONS_ROLE }}"
+          role-session-name: "OIDC-Session"
+
+      - name: Terraform Plan
+        env:
+          TF_VAR_region: "${{ vars.REGION}}"
+          TF_VAR_host_key_path: "${{ vars.HOST_KEY_PATH}}"
+        run: |
+          ENV=${{ github.ref == 'refs/heads/main' && 'prod' || 'staging' }}
+          terraform plan -var-file="${{ENV}}.tfvars" -out=tfplan
+
+      - name: Terraform Apply
+        if: ${{ github.event.inputs.apply == 'true' }}
+        run:
+            terraform apply tfplan

@@ -175,6 +175,7 @@ security_scan() {
         log_warning "Found potential hardcoded secrets. Please review the following files:"
         find "$BASE_DIR" -name "*.tf" -o -name "*.tfvars" | xargs grep -n "password\|secret|key" >/dev/null 2>&1 || true
         issue_found=true
+		exit 1
     fi
 
     if ! $issue_found; then
