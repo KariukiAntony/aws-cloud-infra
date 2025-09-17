@@ -57,7 +57,7 @@ jobs:
           terraform_version: 1.11.0
           terraform_wrapper: false
           role_to_assume: "${{ secrets.AWS_OIDC_ROLE }}"
-          aws_region: "$AWS_REGION"
+          aws_region: "${{env.AWS_REGION}}"
           role_session_name: "OIDC-Session"
 
       - name: Terraform Format Check
