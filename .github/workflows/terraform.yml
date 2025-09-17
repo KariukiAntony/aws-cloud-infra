@@ -70,6 +70,6 @@ jobs:
         run: terraform validate
 
       - name: List the S3 buckets
-        run:
+        run: |
           echo "Here are the buckets"
           aws s3 ls
