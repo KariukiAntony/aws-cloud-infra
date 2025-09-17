@@ -1,0 +1,48 @@
+name: Setup Terraform and Configure AWS
+
+inputs:
+    terraform_version:
+      description: "Version of Terraform to use"
+      required: true
+
+    terraform_wrapper:
+      description: "Setup Terraform wrapper"
+      type: boolean
+      default: false
+
+    role_to_assume:
+      description: "AWS role for github actions to assume"
+      required: true
+
+    aws_region:
+      description: "AWS region to deploy resources in"
+      required: true
+      default: "eu-central-1a"
+
+    role_session_name:
+      description: "The role session name"
+      required: false
+      default: "GitHubAction-OIDC-Terraform"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "${{ inputs.terraform_version }}"
+        terraform_wrapper: "${{ inputs.terraform_wrapper }}"
+
+    - name: Cache Terraform plugins
+      uses: actions/cache@v4
+      with:
+        path: infra/.terraform
+        key: infra-${{ runner.os }}-${{ hashFiles('infra/.terraform.lock.hcl') }}
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4.1.0
+      with:
+        role-to-assume: "${{ inputs.role_to_assume }}"
+        aws-region: "${{ inputs.aws_region }}"
+        role-session-name: "${{ inputs.role_session_name }}"
+
