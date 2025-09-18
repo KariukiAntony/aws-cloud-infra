@@ -106,13 +106,3 @@ jobs:
         with:
           sarif_file: checkov.sarif
 
-  setup-tmate:
-    name: "If failure, Setup a tmate session"
-    if: failure()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Start a debug session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          detached: true
-
