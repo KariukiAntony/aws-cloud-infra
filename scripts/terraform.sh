@@ -133,6 +133,7 @@ helper_format_dir() {
     log_info "Formating Terraform files in: $base_dir"
 
     find "$base_dir" -type f -name "*.tf" -exec terraform fmt {} +
+    find "$base_dir" -type f -name "*.tfvars" -exec terraform fmt {} +
 
     # check if there is any unformated files
     unformatted_files=$(find "$base_dir" -type f -name "*.tf" -print0 | xargs --null terraform fmt -check -list 2>&1 || true)

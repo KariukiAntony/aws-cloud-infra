@@ -24,6 +24,10 @@ inputs:
       required: false
       default: "GitHubAction-OIDC-Terraform"
 
+    public_key:
+      description: "Host key for terraform"
+      required: true
+
 runs:
   using: "composite"
   steps:
@@ -45,4 +49,10 @@ runs:
         role-to-assume: "${{ inputs.role_to_assume }}"
         aws-region: "${{ inputs.aws_region }}"
         role-session-name: "${{ inputs.role_session_name }}"
+
+    - name: "Add the public key to the host"
+      shell: bash
+      run: |
+        mkdir ~/.ssh
+        echo "${{ inputs.public_key }}" > ~/.ssh/id_rsa.pub
 

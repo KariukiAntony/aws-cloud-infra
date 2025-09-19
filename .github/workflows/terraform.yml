@@ -4,7 +4,7 @@ run-name: Infra CI/CD
 on:
   push:
     branches: [main, infra]
-    paths:
+    paths: &infra_paths
       - infra/**
       - .github/workflows/terraform.yml
       - .github/actions/terraform/action.yml
@@ -12,11 +12,7 @@ on:
 
   pull_request:
     branches: [main, infra]
-    paths:
-      - infra/**
-      - .github/workflows/terraform.yml
-      - .github/actions/terraform/action.yml
-      - scripts/**
+    paths: *infra_paths
 
   workflow_dispatch:
     inputs:
@@ -32,7 +28,11 @@ on:
 
 permissions:
   contents: read
-  id-token: write # Required for requesting the singed jwt token.
+  id-token: write # Required for requesting the singed JWT token.
+  pull-requests: write
+  issues: write
+  security-events: write
+
 
 defaults:
   run:
@@ -40,22 +40,29 @@ defaults:
 
 env:
   AWS_REGION: eu-central-1
+  INFRA_DIR: infra
+  TERRAFORM_VERSION: 1.11.0
 
 jobs:
-  ci:
-    name: Terraform CI
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "${{ env.INFRA_DIR }}"
     steps:
       - name: Checkout the infra code
         uses: actions/checkout@v4
         with:
           ref: infra
+          fetch-depth: 0
 
       - name: Setup Terraform
         uses: ./.github/actions/terraform
         with:
-          terraform_version: 1.11.0
+          terraform_version: "${{ env.TERRAFORM_VERSION }}"
           terraform_wrapper: false
+          public_key: "${{ vars.PUBLIC_KEY }}"
           role_to_assume: "${{ secrets.AWS_OIDC_ROLE }}"
           aws_region: "${{env.AWS_REGION}}"
           role_session_name: "OIDC-Session"
@@ -69,7 +76,101 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: List the S3 buckets
-        run: |
-          echo "Here are the buckets"
-          aws s3 ls
+      - name: Start a debug session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
+
+  security-scan:
+    name: Security Scan with Checkov
+    runs-on: ubuntu-latest
+    needs: [validate]
+    steps:
+      - name: Checkout the infra code
+        uses: actions/checkout@v4
+        with:
+          ref: infra
+          fetch-depth: 0
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: "${{ env.INFRA_DIR }}"
+          framework: terraform
+          quiet: true
+          soft_fail: true
+          output_format: sarif
+          output_file_path: checkov.sarif
+
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov.sarif
+
+  plan:
+    name: Terraform plan
+    needs: [validate]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "${{ env.INFRA_DIR }}"
+    steps:
+      - name: Checkout the infra code
+        uses: actions/checkout@v4
+        with:
+          ref: infra
+          fetch-depth: 0
+
+      - name: Setup Terraform
+        uses: ./.github/actions/terraform
+        with:
+          terraform_version: "${{ env.TERRAFORM_VERSION }}"
+          terraform_wrapper: false
+          public_key: "${{ vars.PUBLIC_KEY }}"
+          role_to_assume: "${{ secrets.AWS_OIDC_ROLE }}"
+          aws_region: "${{env.AWS_REGION}}"
+          role_session_name: "OIDC-Session"
+
+      - name: Terraform Init
+        run: terraform init -migrate-state
+
+      - name: Terraform plan
+        id: plan
+        run: terraform plan -no-color -input=false -var-file="prod.tfvars"
+        continue-on-error: true
+
+      - name: "Update the pull request"
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          PLAN: "${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          script: |
+            const output =`
+              #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+              <details><summary>Show Plan</summary>
+
+              \`\`\`\n
+              ${process.env.PLAN}
+              \`\`\`
+
+              </details>
+
+              *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+            })
+
+      - name: Start a debug session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
