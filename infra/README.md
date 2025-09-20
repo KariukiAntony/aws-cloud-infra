@@ -97,7 +97,8 @@ infra/
       - In this app, we are provisioning two certificates.
         - 1. **Cloudfront:** This ensures a secure, encrypted connection between end **user's browser and the CloudFront edge location**
         - 2. **ALB:** ensures a secure, encrypted communication between **CloudFront edge location and Application Load Balancer.**
-      - Since cloudfront is not in the same region as the ALB, that's why we have two certificates.
+      - Since cloudfront is not in the same region as the ALB, that's why we have two ce  1. ****
+   rtificates.
 
 ### CDN Module Components
   1. **CloudFront**
@@ -132,6 +133,18 @@ infra/
       - Centralizing them in one module simplifies management, improves security, and ensures consistency across the infrastructure.
    3. **Key pairs**
       - This resource creates the key pair, allowing us to connect to a bastion host in a public subnet via SSH. From the bastion host, we can then use the same key pair to securely connect to other instances located in a private subnets.
+## Data Module Components
+<img src="../docs/data.svg" alt="Terraform-aws-architecture"/>
+
+  1. **RDS Instance(PostgreSQL)**
+     - This is the **main DB instance** that accepts all writes and reads by default.
+     - AWS gives use a RDS endpoint that we use to connect to it.
+  2. **Standby Instance**
+     - Since we are using a **Multi-AZ** deployment, AWS provisions a **synchronous standby** replica in another AZ(as defined by the subnet group)
+     - Incase the primary database fails it is replaced with this.
+  3. **Read Replica**
+     - This is a separate DB instance that uses **asynchronous repliation** from the primary database.
+     - It is being used in this app to offload **read-heavy workloads**
 
 ### Monitoring Module Components
   1. **SNS topic**
