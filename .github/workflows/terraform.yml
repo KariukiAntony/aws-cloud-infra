@@ -181,7 +181,6 @@ jobs:
 
   apply:
     name: Terraform apply
-    needs: [plan]
     if: github.ref == 'refs/heads/main' && github.event.inputs.action == 'apply'
     runs-on: ubuntu-latest
     environment:
