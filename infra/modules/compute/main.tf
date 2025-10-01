@@ -39,7 +39,7 @@ resource "aws_lb_target_group" "main" {
 
 # ALB Listener(HTTPS)
 resource "aws_lb_listener" "main_https" {
-  count = var.ssl_certificate_arn != "" ? 1 : 0
+  count = var.enable_https ? 1 : 0
 
   load_balancer_arn = aws_lb.main.arn
   port              = 443
