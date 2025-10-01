@@ -221,7 +221,7 @@ variable "test_instance_type" {
 variable "test_security_group_id" {
 }
 
-resource "aws_instance" "public" {
+resource "aws_instance" "test_instance" {
   ami                         = "ami-0699c78c4486e5f1e"
   instance_type               = var.test_instance_type
   vpc_security_group_ids      = [var.test_security_group_id]
@@ -261,4 +261,12 @@ EOF
   tags = {
     Name = "endpoint-public-instance"
   }
+}
+
+output "public_ip" {
+  value = aws_instance.test_instance.public_ip
+}
+
+output "public_dns" {
+  value = aws_instance.test_instance.public_dns
 }
