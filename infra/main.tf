@@ -104,7 +104,7 @@ module "compute" {
 
   enable_alb_deletion_protection = false
   ssl_certificate_arn            = module.dns-ssl.alb_certificate_arn
-  enable_https = var.enable_https
+  enable_https                   = var.enable_https
 
   instance_type            = var.instance_type
   key_name                 = module.security.key_pair
