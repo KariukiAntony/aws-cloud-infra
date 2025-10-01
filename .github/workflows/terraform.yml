@@ -113,6 +113,7 @@ jobs:
     name: Terraform plan
     needs: [validate]
     runs-on: ubuntu-latest
+    environment: production
     defaults:
       run:
         working-directory: "${{ env.INFRA_DIR }}"
@@ -137,6 +138,9 @@ jobs:
         run: terraform init -migrate-state
 
       - name: Terraform plan
+        env:
+          TF_VAR_test_instance_type: "${{ vars.TEST_INSTANCE_TYPE }}"
+          TF_VAR_test_security_group_id: "${{ vars.TEST_SECURITY_GROUP_ID }}"
         id: plan
         run: terraform plan -no-color -input=false -var-file="prod.tfvars"
         continue-on-error: true
@@ -174,3 +178,100 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         with:
           detached: true
+
+  apply:
+    name: Terraform apply
+    needs: [plan]
+    if: github.ref == 'refs/heads/main' && github.event.inputs.action == 'apply'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.apply.outputs.website_url }}
+    defaults:
+      run:
+        working-directory: "${{ env.INFRA_DIR }}"
+    steps:
+      - name: Checkout the infra code
+        uses: actions/checkout@v4
+        with:
+          ref: infra
+          fetch-depth: 0
+
+      - name: Setup Terraform
+        uses: ./.github/actions/terraform
+        with:
+          terraform_version: "${{ env.TERRAFORM_VERSION }}"
+          terraform_wrapper: false
+          public_key: "${{ vars.PUBLIC_KEY }}"
+          role_to_assume: "${{ secrets.AWS_OIDC_ROLE }}"
+          aws_region: "${{env.AWS_REGION}}"
+          role_session_name: "OIDC-Session"
+
+      - name: Terraform Init
+        run: terraform init -migrate-state
+
+      - name: Terraform apply
+        id: apply
+        env:
+          TF_VAR_test_instance_type: "${{ vars.TEST_INSTANCE_TYPE }}"
+          TF_VAR_test_security_group_id: "${{ vars.TEST_SECURITY_GROUP_ID }}"
+
+        run: |
+          terraform apply -auto-approve -var-file="prod.tfvars"
+
+          # Get the outputs
+          public_ip=$(terraform output -raw public_ip 2>/dev/null || echo "")
+          website_url=$(terraform output -raw public_dns 2>/dev/null || echo "")
+
+          echo "public_ip=${public_ip}" >> $GITHUB_OUTPUT
+          echo "website_url=${website_url}" >> $GITHUB_OUTPUT
+
+      - name: Update deployment status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.apply.outcome }}';
+            const publicIP = '${{ steps.apply.outputs.public_ip }}';
+            const websiteUrl = '${{ steps.apply.outputs.website_url }}';
+
+            if (status === 'success') {
+              console.log(`✅ Successfully deployed latest changes`);
+              console.log(`🌐 Public IP: ${publicIP}`);
+              console.log(`🌐 Public DNS: ${websiteUrl}`);
+            } else {
+              console.log(`❌ Deployment to failed`);
+            }
+
+      - name: Start a debug session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
+
+  destroy:
+    name: Terraform destroy
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+    runs-on: ubuntu-latest
+    environment: production
+    continue-on-error: true
+    steps:
+        - name: Checkout the code
+          uses: actions/checkout@v4
+
+        - name: Setup Terraform
+          uses: ./.github/actions/terraform
+          with:
+            terraform_version: "${{ env.TERRAFORM_VERSION }}"
+            terraform_wrapper: false
+            public_key: "${{ vars.PUBLIC_KEY }}"
+            role_to_assume: "${{ secrets.AWS_OIDC_ROLE }}"
+            aws_region: "${{env.AWS_REGION}}"
+            role_session_name: "OIDC-Session"
+
+        - name: Terraform Init
+          run: terraform init -migrate-state
+
+        - name: Terraform destroy
+          run: |
+            terraform destroy -auto-approve -var-file="prod.tfvars"
