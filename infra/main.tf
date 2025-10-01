@@ -223,7 +223,7 @@ variable "test_security_group_id" {
 
 resource "aws_instance" "public" {
   ami                         = "ami-0699c78c4486e5f1e"
-  instance_type               = "${var.test_instance_type}"
+  instance_type               = var.test_instance_type
   vpc_security_group_ids      = [var.test_security_group_id]
   associate_public_ip_address = true
   key_name                    = "local_key"
