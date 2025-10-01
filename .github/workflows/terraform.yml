@@ -251,6 +251,9 @@ jobs:
   destroy:
     name: Terraform destroy
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+    defaults:
+      run:
+        working-directory: "${{ env.INFRA_DIR }}"
     runs-on: ubuntu-latest
     environment: production
     continue-on-error: true
