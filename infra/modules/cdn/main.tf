@@ -11,6 +11,7 @@ resource "random_id" "bucket_suffix" {
 # A bucket to store cloudfront logs
 resource "aws_s3_bucket" "cloudfront_logs" {
   bucket = "${var.base_name}-cloudfront-${random_id.bucket_suffix.hex}"
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_ownership_controls" "main" {

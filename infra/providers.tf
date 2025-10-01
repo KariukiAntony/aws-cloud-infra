@@ -4,7 +4,7 @@ terraform {
 
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.0" # Pessimistic constraint
+      version = "6.0.0" # Exact version due to workflows.
     }
 
     random = {

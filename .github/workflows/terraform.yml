@@ -2,17 +2,17 @@ name: Terraform CI/CD
 run-name: Infra CI/CD
 
 on:
-  push:
-    branches: [main, infra]
-    paths: &infra_paths
-      - infra/**
-      - .github/workflows/terraform.yml
-      - .github/actions/terraform/action.yml
-      - scripts/**
+  # push:
+  #   branches: [main, infra]
+  #   paths: &infra_paths
+  #     - infra/**
+  #     - .github/workflows/terraform.yml
+  #     - .github/actions/terraform/action.yml
+  #     - scripts/**
 
-  pull_request:
-    branches: [main, infra]
-    paths: *infra_paths
+  # pull_request:
+  #   branches: [main, infra]
+  #   paths: *infra_paths
 
   workflow_dispatch:
     inputs:
