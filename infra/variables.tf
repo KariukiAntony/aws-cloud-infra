@@ -146,6 +146,10 @@ variable "scaling_adjustment" {
   type        = number
 }
 
+variable "enable_https" {
+  description = "Enable HTTPS listener for ALB"
+  type        = bool
+}
 
 # ---- Bastion ----
 variable "bastion_instance_type" {

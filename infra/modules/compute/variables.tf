@@ -43,6 +43,11 @@ variable "ssl_certificate_arn" {
   type        = string
 }
 
+variable "enable_https" {
+  description = "Enable HTTPS listener for ALB"
+  type        = bool
+}
+
 variable "ec2_cloudwatch_role" {
   description = "EC2 role to enable CloudWatch Agents to publish metrics to CloudWatch"
   type        = string
