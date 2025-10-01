@@ -22,7 +22,6 @@ on:
         default: 'plan'
         type: choice
         options:
-          - plan
           - apply
           - destroy
 
@@ -46,6 +45,7 @@ env:
 jobs:
   validate:
     name: Validate
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -112,6 +112,7 @@ jobs:
   plan:
     name: Terraform plan
     needs: [validate]
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: production
     defaults:
@@ -181,7 +182,6 @@ jobs:
 
   apply:
     name: Terraform apply
-    needs: [plan]
     if: github.ref == 'refs/heads/main' && github.event.inputs.action == 'apply'
     runs-on: ubuntu-latest
     environment:
@@ -252,6 +252,9 @@ jobs:
   destroy:
     name: Terraform destroy
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+    defaults:
+      run:
+        working-directory: "${{ env.INFRA_DIR }}"
     runs-on: ubuntu-latest
     environment: production
     continue-on-error: true
@@ -275,3 +278,6 @@ jobs:
         - name: Terraform destroy
           run: |
             terraform destroy -auto-approve -var-file="prod.tfvars"
+          env:
+            TF_VAR_test_instance_type: "${{ vars.TEST_INSTANCE_TYPE }}"
+            TF_VAR_test_security_group_id: "${{ vars.TEST_SECURITY_GROUP_ID }}"
